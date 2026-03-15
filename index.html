@@ -21,14 +21,10 @@
             --highlight: #fde047;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            font-family: 'Inter', -apple-system, sans-serif;
             background-color: var(--bg-page);
             color: var(--text-main);
             display: flex;
@@ -51,133 +47,49 @@
             gap: 20px;
         }
 
-        h2 {
-            text-align: center;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 5px;
-            letter-spacing: -1px;
-        }
-
+        h2 { text-align: center; font-size: 28px; margin-bottom: 5px; }
         h2 span { color: var(--accent); }
 
         textarea, select {
-            width: 100%;
-            padding: 15px;
-            border-radius: 12px;
-            background-color: var(--bg-input);
-            color: var(--text-main);
-            border: 1px solid var(--border-muted);
-            font-size: 16px;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%; padding: 15px; border-radius: 12px;
+            background-color: var(--bg-input); color: var(--text-main);
+            border: 1px solid var(--border-muted); font-size: 16px;
         }
 
         textarea:focus, select:focus {
-            outline: none;
-            border-color: var(--accent);
+            outline: none; border-color: var(--accent);
             box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
         }
 
-        textarea {
-            height: 150px; /* Slightly shorter to fit the new controls */
-            resize: none;
-            line-height: 1.6;
-        }
-
-        textarea::selection {
-            background-color: var(--highlight);
-            color: #121212;
-        }
+        textarea { height: 150px; resize: none; line-height: 1.6; }
+        textarea::selection { background-color: var(--highlight); color: #121212; }
 
         select {
-            cursor: pointer;
-            appearance: none;
+            cursor: pointer; appearance: none;
             background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-            background-repeat: no-repeat;
-            background-position-x: calc(100% - 15px);
+            background-repeat: no-repeat; background-position-x: calc(100% - 15px);
             background-position-y: center;
         }
 
-        /* --- THE NEW SLIDER CONTROLS --- */
-        .sliders {
-            display: flex;
-            gap: 20px;
-            background: var(--bg-input);
-            padding: 15px 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-muted);
-        }
+        .sliders { display: flex; gap: 20px; background: var(--bg-input); padding: 15px 20px; border-radius: 12px; border: 1px solid var(--border-muted); }
+        .slider-group { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .slider-group label { font-size: 14px; font-weight: 600; color: #aaa; display: flex; justify-content: space-between; }
+        .slider-group span { color: var(--text-main); }
 
-        .slider-group {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .slider-group label {
-            font-size: 14px;
-            font-weight: 600;
-            color: #aaa;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .slider-group span {
-            color: var(--text-main);
-        }
-
-        /* Styling the range sliders for a modern look */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
-
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
         input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 16px;
-            width: 16px;
-            border-radius: 50%;
-            background: var(--accent);
-            cursor: pointer;
-            margin-top: -6px;
+            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+            background: var(--accent); cursor: pointer; margin-top: -6px;
             box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
         }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--border-muted); border-radius: 2px; }
 
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: var(--border-muted);
-            border-radius: 2px;
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-        }
-
-        button {
-            flex: 1;
-            padding: 14px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            color: white;
-        }
-
+        .button-group { display: flex; gap: 10px; width: 100%; }
+        button { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; }
         button:active { transform: translateY(2px); }
-        .btn-play { background-color: var(--accent); }
-        .btn-play:hover { background-color: var(--accent-hover); }
-        .btn-secondary { background-color: var(--secondary); }
-        .btn-secondary:hover { background-color: var(--secondary-hover); }
-        .btn-danger { background-color: var(--danger); }
-        .btn-danger:hover { background-color: var(--danger-hover); }
+        .btn-play { background-color: var(--accent); } .btn-play:hover { background-color: var(--accent-hover); }
+        .btn-secondary { background-color: var(--secondary); } .btn-secondary:hover { background-color: var(--secondary-hover); }
+        .btn-danger { background-color: var(--danger); } .btn-danger:hover { background-color: var(--danger-hover); }
 
     </style>
 </head>
@@ -185,19 +97,14 @@
 
     <div class="container">
         <h2>Speak <span>Out</span> Loud</h2>
-        
         <textarea id="text-input" placeholder="Enter text to speak...">The ancient forest stood as a quiet testament to time, its towering redwoods filtering the golden afternoon sunlight into a mosaic of vibrant green.</textarea>
-        
-        <select id="voice-select">
-            <option value="">Loading voices...</option>
-        </select>
+        <select id="voice-select"><option value="">Loading voices...</option></select>
         
         <div class="sliders">
             <div class="slider-group">
                 <label for="volume-slider">Volume <span id="volume-value">100%</span></label>
                 <input type="range" id="volume-slider" min="0" max="1" value="1" step="0.1">
             </div>
-            
             <div class="slider-group">
                 <label for="speed-slider">Speed <span id="speed-value">1.0x</span></label>
                 <input type="range" id="speed-slider" min="0.5" max="2" value="1" step="0.1">
@@ -215,39 +122,28 @@
         const synth = window.speechSynthesis;
         const textInput = document.getElementById('text-input');
         const voiceSelect = document.getElementById('voice-select');
-        
         const playBtn = document.getElementById('play-btn');
         const togglePauseBtn = document.getElementById('toggle-pause-btn');
         const stopBtn = document.getElementById('stop-btn');
-        
-        // Grab our new sliders and their display labels
         const volumeSlider = document.getElementById('volume-slider');
         const speedSlider = document.getElementById('speed-slider');
         const volumeValue = document.getElementById('volume-value');
         const speedValue = document.getElementById('speed-value');
 
-        // Update the visual text when sliders are moved
-        volumeSlider.addEventListener('input', () => {
-            volumeValue.textContent = Math.round(volumeSlider.value * 100) + '%';
-        });
-
-        speedSlider.addEventListener('input', () => {
-            speedValue.textContent = speedSlider.value + 'x';
-        });
-        
+        // STATE VARIABLES FOR THE RESTART HACK
+        let absoluteStartIndex = 0; 
+        let currentUtteranceIndex = 0;
+        let isRestarting = false;
         let voices = [];
 
+        // --- Visual UI Updates ---
+        volumeSlider.addEventListener('input', () => { volumeValue.textContent = Math.round(volumeSlider.value * 100) + '%'; });
+        speedSlider.addEventListener('input', () => { speedValue.textContent = speedSlider.value + 'x'; });
+
+        // --- Load Voices ---
         function populateVoiceList() {
             voices = synth.getVoices();
             voiceSelect.innerHTML = ''; 
-
-            if (voices.length === 0) {
-                const option = document.createElement('option');
-                option.textContent = "No voices found";
-                voiceSelect.appendChild(option);
-                return;
-            }
-
             voices.forEach((voice) => {
                 const option = document.createElement('option');
                 option.textContent = `${voice.name} (${voice.lang})`;
@@ -255,52 +151,85 @@
                 voiceSelect.appendChild(option);
             });
         }
-
         populateVoiceList();
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = populateVoiceList;
-        }
+        if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = populateVoiceList;
 
         function clearHighlight() {
             textInput.setSelectionRange(0, 0);
             textInput.blur();
         }
 
-        playBtn.addEventListener('click', () => {
-            if (textInput.value !== '') {
-                if (synth.speaking) {
-                    synth.cancel();
-                }
-                
-                const utterance = new SpeechSynthesisUtterance(textInput.value);
-                
-                // --- APPLY SLIDER VALUES ---
-                utterance.volume = parseFloat(volumeSlider.value);
-                utterance.rate = parseFloat(speedSlider.value);
-                
-                const selectedVoiceName = voiceSelect.selectedOptions[0].getAttribute('data-name');
-                const selectedVoice = voices.find(voice => voice.name === selectedVoiceName);
-                
-                if (selectedVoice) {
-                    utterance.voice = selectedVoice;
-                }
-                
-                utterance.onboundary = (event) => {
-                    if (event.name === 'word') {
-                        textInput.focus();
-                        textInput.setSelectionRange(event.charIndex, event.charIndex + event.charLength);
-                    }
-                };
+        // --- THE MAIN SPEAKING LOGIC ---
+        function startSpeaking(textToSpeak) {
+            if (synth.speaking) {
+                isRestarting = true;
+                synth.cancel(); // Stop current speech
+            }
 
-                utterance.onend = () => {
+            const utterance = new SpeechSynthesisUtterance(textToSpeak);
+            utterance.volume = parseFloat(volumeSlider.value);
+            utterance.rate = parseFloat(speedSlider.value);
+            
+            const selectedVoiceName = voiceSelect.selectedOptions[0].getAttribute('data-name');
+            const selectedVoice = voices.find(voice => voice.name === selectedVoiceName);
+            if (selectedVoice) utterance.voice = selectedVoice;
+            
+            utterance.onboundary = (event) => {
+                if (event.name === 'word') {
+                    // Track where we are in the current chunk of text
+                    currentUtteranceIndex = event.charIndex;
+                    
+                    // Calculate exactly where we are in the FULL text to highlight properly
+                    const actualIndex = absoluteStartIndex + currentUtteranceIndex;
+                    textInput.focus();
+                    textInput.setSelectionRange(actualIndex, actualIndex + event.charLength);
+                }
+            };
+
+            utterance.onend = () => {
+                // Only clear UI if the speech finished naturally, not if we manually cancelled it to restart
+                if (!isRestarting) {
                     togglePauseBtn.textContent = 'Pause';
                     clearHighlight();
-                };
-                
-                togglePauseBtn.textContent = 'Pause';
-                synth.speak(utterance);
+                    absoluteStartIndex = 0; // Reset for the next full play
+                }
+                isRestarting = false;
+            };
+            
+            togglePauseBtn.textContent = 'Pause';
+            synth.speak(utterance);
+        }
+
+        // --- EVENT LISTENERS ---
+
+        playBtn.addEventListener('click', () => {
+            if (textInput.value !== '') {
+                absoluteStartIndex = 0;
+                currentUtteranceIndex = 0;
+                startSpeaking(textInput.value);
             }
         });
+
+        // LIVE UPDATE LISTENER (Triggers when you let go of the slider)
+        function handleLiveUpdate() {
+            if (synth.speaking && !synth.paused) {
+                // Save where we left off
+                absoluteStartIndex += currentUtteranceIndex;
+                
+                // Get the rest of the text from that point onward
+                const remainingText = textInput.value.substring(absoluteStartIndex);
+                
+                // Start speaking again with the new settings
+                if (remainingText.length > 0) {
+                    startSpeaking(remainingText);
+                }
+            }
+        }
+
+        // Notice we use 'change' instead of 'input' here. 
+        // We only want to restart the audio when you stop dragging, otherwise it crashes the browser!
+        volumeSlider.addEventListener('change', handleLiveUpdate);
+        speedSlider.addEventListener('change', handleLiveUpdate);
 
         togglePauseBtn.addEventListener('click', () => {
             if (synth.speaking) {
@@ -318,8 +247,8 @@
             synth.cancel();
             togglePauseBtn.textContent = 'Pause';
             clearHighlight();
+            absoluteStartIndex = 0;
         });
     </script>
-
 </body>
 </html>
