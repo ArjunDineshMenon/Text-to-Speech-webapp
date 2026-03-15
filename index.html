@@ -130,17 +130,16 @@
         const volumeValue = document.getElementById('volume-value');
         const speedValue = document.getElementById('speed-value');
 
-        // STATE VARIABLES FOR THE RESTART HACK
+        // --- UPDATED STATE VARIABLES ---
         let absoluteStartIndex = 0; 
         let currentUtteranceIndex = 0;
-        let isRestarting = false;
+        let activeUtteranceId = 0; // The unique ID for the current chunk of audio
         let voices = [];
 
-        // --- Visual UI Updates ---
+        // UI Updates for sliders
         volumeSlider.addEventListener('input', () => { volumeValue.textContent = Math.round(volumeSlider.value * 100) + '%'; });
         speedSlider.addEventListener('input', () => { speedValue.textContent = speedSlider.value + 'x'; });
 
-        // --- Load Voices ---
         function populateVoiceList() {
             voices = synth.getVoices();
             voiceSelect.innerHTML = ''; 
@@ -159,12 +158,18 @@
             textInput.blur();
         }
 
-        // --- THE MAIN SPEAKING LOGIC ---
+        // --- THE FIXED SPEAKING LOGIC ---
         function startSpeaking(textToSpeak) {
+            // Give this specific audio chunk a unique ID
+            activeUtteranceId++; 
+            const myId = activeUtteranceId;
+            
             if (synth.speaking) {
-                isRestarting = true;
-                synth.cancel(); // Stop current speech
+                synth.cancel(); 
             }
+
+            // Reset the chunk index so the math isn't thrown off when restarting
+            currentUtteranceIndex = 0;
 
             const utterance = new SpeechSynthesisUtterance(textToSpeak);
             utterance.volume = parseFloat(volumeSlider.value);
@@ -176,10 +181,7 @@
             
             utterance.onboundary = (event) => {
                 if (event.name === 'word') {
-                    // Track where we are in the current chunk of text
                     currentUtteranceIndex = event.charIndex;
-                    
-                    // Calculate exactly where we are in the FULL text to highlight properly
                     const actualIndex = absoluteStartIndex + currentUtteranceIndex;
                     textInput.focus();
                     textInput.setSelectionRange(actualIndex, actualIndex + event.charLength);
@@ -187,21 +189,23 @@
             };
 
             utterance.onend = () => {
-                // Only clear UI if the speech finished naturally, not if we manually cancelled it to restart
-                if (!isRestarting) {
+                // Ignore delayed cleanup events from old cancelled audio
+                if (myId === activeUtteranceId) {
                     togglePauseBtn.textContent = 'Pause';
                     clearHighlight();
-                    absoluteStartIndex = 0; // Reset for the next full play
+                    absoluteStartIndex = 0; 
                 }
-                isRestarting = false;
             };
             
             togglePauseBtn.textContent = 'Pause';
-            synth.speak(utterance);
+            
+            // Tiny delay ensures the browser safely clears the old audio before starting the new one
+            setTimeout(() => {
+                synth.speak(utterance);
+            }, 50);
         }
 
         // --- EVENT LISTENERS ---
-
         playBtn.addEventListener('click', () => {
             if (textInput.value !== '') {
                 absoluteStartIndex = 0;
@@ -210,24 +214,17 @@
             }
         });
 
-        // LIVE UPDATE LISTENER (Triggers when you let go of the slider)
         function handleLiveUpdate() {
             if (synth.speaking && !synth.paused) {
-                // Save where we left off
                 absoluteStartIndex += currentUtteranceIndex;
-                
-                // Get the rest of the text from that point onward
                 const remainingText = textInput.value.substring(absoluteStartIndex);
                 
-                // Start speaking again with the new settings
                 if (remainingText.length > 0) {
                     startSpeaking(remainingText);
                 }
             }
         }
 
-        // Notice we use 'change' instead of 'input' here. 
-        // We only want to restart the audio when you stop dragging, otherwise it crashes the browser!
         volumeSlider.addEventListener('change', handleLiveUpdate);
         speedSlider.addEventListener('change', handleLiveUpdate);
 
@@ -244,6 +241,7 @@
         });
 
         stopBtn.addEventListener('click', () => {
+            activeUtteranceId++; // Invalidate any delayed onend events
             synth.cancel();
             togglePauseBtn.textContent = 'Pause';
             clearHighlight();
