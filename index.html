@@ -47,7 +47,6 @@
             gap: 20px;
         }
 
-        /* --- NEW HEADER LAYOUT --- */
         .header-row {
             display: flex;
             justify-content: space-between;
@@ -58,12 +57,11 @@
         h2 { font-size: 28px; }
         h2 span { color: var(--accent); }
 
-        /* Smaller button style for the upload button */
         .btn-small {
             padding: 8px 14px;
             font-size: 14px;
             border-radius: 8px;
-            flex: none; /* Prevents it from stretching */
+            flex: none; 
         }
 
         textarea, select {
@@ -101,7 +99,7 @@
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--border-muted); border-radius: 2px; }
 
         .button-group { display: flex; gap: 10px; width: 100%; }
-        button { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; }
+        button { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; transition: all 0.2s; }
         button:active { transform: translateY(2px); }
         .btn-play { background-color: var(--accent); } .btn-play:hover { background-color: var(--accent-hover); }
         .btn-secondary { background-color: var(--secondary); } .btn-secondary:hover { background-color: var(--secondary-hover); }
@@ -148,7 +146,6 @@
         const stopBtn = document.getElementById('stop-btn');
         const clearBtn = document.getElementById('clear-btn');
         
-        // New file upload variables
         const fileUpload = document.getElementById('file-upload');
         const uploadBtn = document.getElementById('upload-btn');
         
@@ -161,6 +158,23 @@
         let currentUtteranceIndex = 0;
         let activeUtteranceId = 0; 
         let voices = [];
+
+        // --- NEW LOCALSTORAGE INITIALIZATION ---
+        // Check if there is saved text when the page loads
+        const savedText = localStorage.getItem('tts_saved_text');
+        if (savedText) {
+            textInput.value = savedText;
+        } else {
+            // Default placeholder text if nothing is saved
+            textInput.value = "The ancient forest stood as a quiet testament to time, its towering redwoods filtering the golden afternoon sunlight into a mosaic of vibrant green.";
+        }
+
+        // --- AUTOSAVE EVENT LISTENER ---
+        // Save the text every time the user types or pastes something
+        textInput.addEventListener('input', () => {
+            localStorage.setItem('tts_saved_text', textInput.value);
+        });
+
 
         volumeSlider.addEventListener('input', () => { volumeValue.textContent = Math.round(volumeSlider.value * 100) + '%'; });
         speedSlider.addEventListener('input', () => { speedValue.textContent = speedSlider.value + 'x'; });
@@ -183,25 +197,22 @@
             textInput.blur();
         }
 
-        // --- FILE UPLOAD LOGIC ---
-        
-        // 1. When the fake button is clicked, trigger the hidden file input
         uploadBtn.addEventListener('click', () => {
             fileUpload.click();
         });
 
-        // 2. When a file is selected, read it
         fileUpload.addEventListener('change', (event) => {
             const file = event.target.files[0];
             
             if (file) {
                 const reader = new FileReader();
                 
-                // 3. What to do when the file is finished loading
                 reader.onload = (e) => {
-                    textInput.value = e.target.result; // Put text in the box
+                    textInput.value = e.target.result; 
                     
-                    // Stop any current audio and reset so it doesn't read the old text
+                    // Trigger the autosave when a file is uploaded too!
+                    localStorage.setItem('tts_saved_text', textInput.value);
+                    
                     activeUtteranceId++;
                     synth.cancel();
                     playPauseBtn.textContent = 'Play';
@@ -209,15 +220,11 @@
                     absoluteStartIndex = 0;
                 };
                 
-                // 4. Actually start reading the file
                 reader.readAsText(file);
-                
-                // Reset the file input so you can upload the same file again if you want
                 fileUpload.value = ''; 
             }
         });
 
-        // --- EXISTING SPEAKING LOGIC ---
         function startSpeaking(textToSpeak) {
             activeUtteranceId++; 
             const myId = activeUtteranceId;
@@ -302,6 +309,10 @@
 
         clearBtn.addEventListener('click', () => {
             textInput.value = ''; 
+            
+            // --- NEW: Remove from local storage ---
+            localStorage.removeItem('tts_saved_text');
+            
             activeUtteranceId++; 
             synth.cancel(); 
             playPauseBtn.textContent = 'Play'; 
