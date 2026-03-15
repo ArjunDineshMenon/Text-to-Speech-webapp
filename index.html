@@ -18,6 +18,7 @@
             --danger: #ef4444;
             --danger-hover: #dc2626;
             --shadow-soft: 0 10px 30px rgba(0,0,0,0.5);
+            --highlight: #fde047; /* Bright Yellow */
         }
 
         * {
@@ -43,7 +44,7 @@
             border-radius: 20px;
             box-shadow: var(--shadow-soft);
             width: 100%;
-            max-width: 600px; /* Made slightly wider to fit buttons */
+            max-width: 600px;
             border: 1px solid var(--border-muted);
             display: flex;
             flex-direction: column;
@@ -83,6 +84,13 @@
             line-height: 1.6;
         }
 
+        /* --- THE YELLOW HIGHLIGHT --- */
+        /* This changes the default blue text selection color to yellow and black */
+        textarea::selection {
+            background-color: var(--highlight);
+            color: #121212;
+        }
+
         select {
             cursor: pointer;
             appearance: none;
@@ -92,7 +100,6 @@
             background-position-y: center;
         }
 
-        /* --- New Button Group Styling --- */
         .button-group {
             display: flex;
             gap: 10px;
@@ -100,7 +107,7 @@
         }
 
         button {
-            flex: 1; /* Makes all buttons take up equal space */
+            flex: 1;
             padding: 14px;
             border: none;
             border-radius: 10px;
@@ -113,7 +120,6 @@
 
         button:active { transform: translateY(2px); }
 
-        /* Specific Button Colors */
         .btn-play { background-color: var(--accent); }
         .btn-play:hover { background-color: var(--accent-hover); }
 
@@ -130,7 +136,7 @@
     <div class="container">
         <h2>Speak <span>Out</span> Loud</h2>
         
-        <textarea id="text-input" placeholder="Enter text to speak...">The ancient forest stood as a quiet testament to time, its towering redwoods filtering the golden afternoon sunlight into a mosaic of vibrant green...</textarea>
+        <textarea id="text-input" placeholder="Enter text to speak...">The ancient forest stood as a quiet testament to time, its towering redwoods filtering the golden afternoon sunlight into a mosaic of vibrant green.</textarea>
         
         <select id="voice-select">
             <option value="">Loading voices...</option>
@@ -138,8 +144,7 @@
         
         <div class="button-group">
             <button id="play-btn" class="btn-play">Play</button>
-            <button id="pause-btn" class="btn-secondary">Pause</button>
-            <button id="resume-btn" class="btn-secondary">Resume</button>
+            <button id="toggle-pause-btn" class="btn-secondary">Pause</button>
             <button id="stop-btn" class="btn-danger">Stop</button>
         </div>
     </div>
@@ -149,10 +154,8 @@
         const textInput = document.getElementById('text-input');
         const voiceSelect = document.getElementById('voice-select');
         
-        // Grab all our new buttons
         const playBtn = document.getElementById('play-btn');
-        const pauseBtn = document.getElementById('pause-btn');
-        const resumeBtn = document.getElementById('resume-btn');
+        const togglePauseBtn = document.getElementById('toggle-pause-btn');
         const stopBtn = document.getElementById('stop-btn');
         
         let voices = [];
@@ -163,7 +166,7 @@
 
             if (voices.length === 0) {
                 const option = document.createElement('option');
-                option.textContent = "No voices found (is this feature available?)";
+                option.textContent = "No voices found";
                 voiceSelect.appendChild(option);
                 return;
             }
@@ -181,10 +184,15 @@
             speechSynthesis.onvoiceschanged = populateVoiceList;
         }
 
+        // Helper function to clear the yellow highlight
+        function clearHighlight() {
+            textInput.setSelectionRange(0, 0);
+            textInput.blur(); // Removes focus so the cursor disappears
+        }
+
         // 1. PLAY BUTTON
         playBtn.addEventListener('click', () => {
             if (textInput.value !== '') {
-                // If it's already speaking, cancel the current speech so they don't overlap
                 if (synth.speaking) {
                     synth.cancel();
                 }
@@ -197,29 +205,46 @@
                     utterance.voice = selectedVoice;
                 }
                 
+                // --- THE HIGHLIGHT MAGIC ---
+                // Every time a new word starts, highlight it
+                utterance.onboundary = (event) => {
+                    if (event.name === 'word') {
+                        textInput.focus();
+                        // Select the text from the start of the word to the end of the word
+                        textInput.setSelectionRange(event.charIndex, event.charIndex + event.charLength);
+                    }
+                };
+
+                // When the speech finishes naturally, clean up
+                utterance.onend = () => {
+                    togglePauseBtn.textContent = 'Pause';
+                    clearHighlight();
+                };
+                
+                // Reset the pause button text just in case
+                togglePauseBtn.textContent = 'Pause';
                 synth.speak(utterance);
             }
         });
 
-        // 2. PAUSE BUTTON
-        pauseBtn.addEventListener('click', () => {
-            if (synth.speaking && !synth.paused) {
-                synth.pause();
+        // 2. TOGGLE PAUSE/RESUME BUTTON
+        togglePauseBtn.addEventListener('click', () => {
+            if (synth.speaking) {
+                if (synth.paused) {
+                    synth.resume();
+                    togglePauseBtn.textContent = 'Pause';
+                } else {
+                    synth.pause();
+                    togglePauseBtn.textContent = 'Resume';
+                }
             }
         });
 
-        // 3. RESUME BUTTON
-        resumeBtn.addEventListener('click', () => {
-            if (synth.paused) {
-                synth.resume();
-            }
-        });
-
-        // 4. STOP (START FROM BEGINNING) BUTTON
+        // 3. STOP BUTTON
         stopBtn.addEventListener('click', () => {
-            // Cancel completely wipes the current queue. 
-            // If you hit play again, it starts from the very beginning.
             synth.cancel();
+            togglePauseBtn.textContent = 'Pause'; // Reset button text
+            clearHighlight(); // Remove the yellow highlight
         });
     </script>
 
