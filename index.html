@@ -47,8 +47,24 @@
             gap: 20px;
         }
 
-        h2 { text-align: center; font-size: 28px; margin-bottom: 5px; }
+        /* --- NEW HEADER LAYOUT --- */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        h2 { font-size: 28px; }
         h2 span { color: var(--accent); }
+
+        /* Smaller button style for the upload button */
+        .btn-small {
+            padding: 8px 14px;
+            font-size: 14px;
+            border-radius: 8px;
+            flex: none; /* Prevents it from stretching */
+        }
 
         textarea, select {
             width: 100%; padding: 15px; border-radius: 12px;
@@ -96,8 +112,13 @@
 <body>
 
     <div class="container">
-        <h2>Speak <span>Out</span> Loud</h2>
-        <textarea id="text-input" placeholder="Enter text to speak...">The ancient forest stood as a quiet testament to time, its towering redwoods filtering the golden afternoon sunlight into a mosaic of vibrant green.</textarea>
+        <div class="header-row">
+            <h2>Speak <span>Out</span> Loud</h2>
+            <input type="file" id="file-upload" accept=".txt" style="display: none;">
+            <button id="upload-btn" class="btn-secondary btn-small">Upload .txt</button>
+        </div>
+        
+        <textarea id="text-input" placeholder="Enter text or upload a file to speak..."></textarea>
         <select id="voice-select"><option value="">Loading voices...</option></select>
         
         <div class="sliders">
@@ -123,23 +144,24 @@
         const textInput = document.getElementById('text-input');
         const voiceSelect = document.getElementById('voice-select');
         
-        // Updated button variables
         const playPauseBtn = document.getElementById('play-pause-btn');
         const stopBtn = document.getElementById('stop-btn');
         const clearBtn = document.getElementById('clear-btn');
+        
+        // New file upload variables
+        const fileUpload = document.getElementById('file-upload');
+        const uploadBtn = document.getElementById('upload-btn');
         
         const volumeSlider = document.getElementById('volume-slider');
         const speedSlider = document.getElementById('speed-slider');
         const volumeValue = document.getElementById('volume-value');
         const speedValue = document.getElementById('speed-value');
 
-        // --- UPDATED STATE VARIABLES ---
         let absoluteStartIndex = 0; 
         let currentUtteranceIndex = 0;
-        let activeUtteranceId = 0; // The unique ID for the current chunk of audio
+        let activeUtteranceId = 0; 
         let voices = [];
 
-        // UI Updates for sliders
         volumeSlider.addEventListener('input', () => { volumeValue.textContent = Math.round(volumeSlider.value * 100) + '%'; });
         speedSlider.addEventListener('input', () => { speedValue.textContent = speedSlider.value + 'x'; });
 
@@ -161,9 +183,42 @@
             textInput.blur();
         }
 
-        // --- THE FIXED SPEAKING LOGIC ---
+        // --- FILE UPLOAD LOGIC ---
+        
+        // 1. When the fake button is clicked, trigger the hidden file input
+        uploadBtn.addEventListener('click', () => {
+            fileUpload.click();
+        });
+
+        // 2. When a file is selected, read it
+        fileUpload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                
+                // 3. What to do when the file is finished loading
+                reader.onload = (e) => {
+                    textInput.value = e.target.result; // Put text in the box
+                    
+                    // Stop any current audio and reset so it doesn't read the old text
+                    activeUtteranceId++;
+                    synth.cancel();
+                    playPauseBtn.textContent = 'Play';
+                    clearHighlight();
+                    absoluteStartIndex = 0;
+                };
+                
+                // 4. Actually start reading the file
+                reader.readAsText(file);
+                
+                // Reset the file input so you can upload the same file again if you want
+                fileUpload.value = ''; 
+            }
+        });
+
+        // --- EXISTING SPEAKING LOGIC ---
         function startSpeaking(textToSpeak) {
-            // Give this specific audio chunk a unique ID
             activeUtteranceId++; 
             const myId = activeUtteranceId;
             
@@ -171,7 +226,6 @@
                 synth.cancel(); 
             }
 
-            // Reset the chunk index so the math isn't thrown off when restarting
             currentUtteranceIndex = 0;
 
             const utterance = new SpeechSynthesisUtterance(textToSpeak);
@@ -192,30 +246,24 @@
             };
 
             utterance.onend = () => {
-                // Ignore delayed cleanup events from old cancelled audio
                 if (myId === activeUtteranceId) {
-                    playPauseBtn.textContent = 'Play'; // Reset button back to Play
+                    playPauseBtn.textContent = 'Play'; 
                     clearHighlight();
                     absoluteStartIndex = 0; 
                 }
             };
             
-            playPauseBtn.textContent = 'Pause'; // Switch button to Pause while reading
+            playPauseBtn.textContent = 'Pause'; 
             
-            // Tiny delay ensures the browser safely clears the old audio before starting the new one
             setTimeout(() => {
                 synth.speak(utterance);
             }, 50);
         }
 
-        // --- EVENT LISTENERS ---
-
-        // The unified Play/Pause/Resume logic
         playPauseBtn.addEventListener('click', () => {
-            if (textInput.value === '') return; // Do nothing if box is empty
+            if (textInput.value === '') return; 
 
             if (synth.speaking) {
-                // If it's already talking, check if it's paused
                 if (synth.paused) {
                     synth.resume();
                     playPauseBtn.textContent = 'Pause';
@@ -224,7 +272,6 @@
                     playPauseBtn.textContent = 'Resume';
                 }
             } else {
-                // If it's completely stopped, start fresh
                 absoluteStartIndex = 0;
                 currentUtteranceIndex = 0;
                 startSpeaking(textInput.value);
@@ -246,19 +293,18 @@
         speedSlider.addEventListener('change', handleLiveUpdate);
 
         stopBtn.addEventListener('click', () => {
-            activeUtteranceId++; // Invalidate any delayed onend events
+            activeUtteranceId++; 
             synth.cancel();
-            playPauseBtn.textContent = 'Play'; // Reset button back to Play
+            playPauseBtn.textContent = 'Play'; 
             clearHighlight();
             absoluteStartIndex = 0;
         });
 
-        // The new Clear logic
         clearBtn.addEventListener('click', () => {
-            textInput.value = ''; // Empty the text area
-            activeUtteranceId++; // Invalidate delayed events
-            synth.cancel(); // Stop talking
-            playPauseBtn.textContent = 'Play'; // Reset the play button
+            textInput.value = ''; 
+            activeUtteranceId++; 
+            synth.cancel(); 
+            playPauseBtn.textContent = 'Play'; 
             clearHighlight();
             absoluteStartIndex = 0;
         });
