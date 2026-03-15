@@ -34,13 +34,18 @@
             padding: 20px;
         }
 
+        /* --- UPDATED CONTAINER --- */
         .container {
             background: var(--bg-container);
             padding: 40px;
             border-radius: 20px;
             box-shadow: var(--shadow-soft);
-            width: 100%;
-            max-width: 600px;
+            
+            /* These three lines let the container grow with the text box */
+            width: fit-content; 
+            min-width: min(100%, 600px); 
+            max-width: 95vw; /* Stops the container from exceeding the screen */
+            
             border: 1px solid var(--border-muted);
             display: flex;
             flex-direction: column;
@@ -75,7 +80,16 @@
             box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
         }
 
-        textarea { height: 150px; resize: none; line-height: 1.6; }
+        /* --- UPDATED TEXT AREA --- */
+        textarea { 
+            height: 250px; 
+            resize: both; /* Allows both horizontal and vertical dragging */
+            min-width: 100%; /* Keeps it aligned with the other buttons */
+            max-width: 85vw; /* Stops horizontal drag before edge of screen */
+            max-height: 60vh; /* Stops vertical drag before edge of screen */
+            line-height: 1.6; 
+        }
+        
         textarea::selection { background-color: var(--highlight); color: #121212; }
 
         select {
@@ -159,22 +173,16 @@
         let activeUtteranceId = 0; 
         let voices = [];
 
-        // --- NEW LOCALSTORAGE INITIALIZATION ---
-        // Check if there is saved text when the page loads
         const savedText = localStorage.getItem('tts_saved_text');
         if (savedText) {
             textInput.value = savedText;
         } else {
-            // Default placeholder text if nothing is saved
             textInput.value = "The ancient forest stood as a quiet testament to time, its towering redwoods filtering the golden afternoon sunlight into a mosaic of vibrant green.";
         }
 
-        // --- AUTOSAVE EVENT LISTENER ---
-        // Save the text every time the user types or pastes something
         textInput.addEventListener('input', () => {
             localStorage.setItem('tts_saved_text', textInput.value);
         });
-
 
         volumeSlider.addEventListener('input', () => { volumeValue.textContent = Math.round(volumeSlider.value * 100) + '%'; });
         speedSlider.addEventListener('input', () => { speedValue.textContent = speedSlider.value + 'x'; });
@@ -209,8 +217,6 @@
                 
                 reader.onload = (e) => {
                     textInput.value = e.target.result; 
-                    
-                    // Trigger the autosave when a file is uploaded too!
                     localStorage.setItem('tts_saved_text', textInput.value);
                     
                     activeUtteranceId++;
@@ -309,10 +315,7 @@
 
         clearBtn.addEventListener('click', () => {
             textInput.value = ''; 
-            
-            // --- NEW: Remove from local storage ---
             localStorage.removeItem('tts_saved_text');
-            
             activeUtteranceId++; 
             synth.cancel(); 
             playPauseBtn.textContent = 'Play'; 
