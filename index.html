@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Speech to Text</title>
+    <title>Speech to Text Pro</title>
     <style>
         /* --- DEFAULT DARK THEME --- */
         :root {
             --bg-page: #0f0f13;
-            --bg-container: #1a1a20;
+            --bg-panel: #1a1a20;
             --bg-input: #272730;
             --text-main: #f8f8f8;
             --text-muted: #8b8b9b;
@@ -19,31 +20,34 @@
             --secondary-hover: #30303b;
             --danger: #ef4444;
             --danger-hover: #dc2626;
-            --shadow-soft: 0 15px 35px rgba(0,0,0,0.6);
+            --shadow-soft: 0 15px 35px rgba(0, 0, 0, 0.6);
             --highlight: #fde047;
-            --select-arrow: "%238b8b9b"; /* URL encoded hex for SVG */
+            --select-arrow: "%238b8b9b";
         }
 
-        /* --- NEW LIGHT THEME OVERRIDES --- */
+        /* --- LIGHT THEME OVERRIDES --- */
         [data-theme="light"] {
             --bg-page: #f3f4f6;
-            --bg-container: #ffffff;
+            --bg-panel: #ffffff;
             --bg-input: #f9fafb;
             --text-main: #111827;
             --text-muted: #6b7280;
             --border-muted: #e5e7eb;
             --secondary: #e5e7eb;
             --secondary-hover: #d1d5db;
-            --shadow-soft: 0 15px 35px rgba(0,0,0,0.1);
-            --select-arrow: "%236b7280"; 
+            --shadow-soft: 0 15px 35px rgba(0, 0, 0, 0.1);
+            --select-arrow: "%236b7280";
         }
 
-        /* Adjust button text color for light mode secondary buttons */
         [data-theme="light"] .btn-secondary {
-            color: #111827; 
+            color: #111827;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             font-family: 'Inter', -apple-system, sans-serif;
@@ -52,19 +56,27 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            padding: 20px;
-            transition: background-color 0.3s ease, color 0.3s ease; /* Smooth fade when switching themes */
+            min-height: 100vh;
+            padding: 40px 20px;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        .container {
-            background: var(--bg-container);
-            padding: 40px;
+        /* --- NEW DASHBOARD LAYOUT --- */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            /* 60% Left / 40% Right */
+            gap: 30px;
+            width: 100%;
+            max-width: 1200px;
+            /* Expands much wider on desktop */
+        }
+
+        .panel {
+            background: var(--bg-panel);
+            padding: 35px;
             border-radius: 24px;
             box-shadow: var(--shadow-soft);
-            width: fit-content; 
-            min-width: min(100%, 650px); 
-            max-width: 95vw; 
             border: 1px solid var(--border-muted);
             display: flex;
             flex-direction: column;
@@ -84,9 +96,12 @@
             gap: 10px;
         }
 
-        h2 { font-size: 28px; letter-spacing: -0.5px; }
-        
-        h2 span { 
+        h2 {
+            font-size: 28px;
+            letter-spacing: -0.5px;
+        }
+
+        h2 span {
             background: linear-gradient(90deg, #0ea5e9, #3b82f6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -96,122 +111,326 @@
             padding: 8px 16px;
             font-size: 13px;
             border-radius: 8px;
-            flex: none; 
+            flex: none;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: bold;
         }
 
-        /* Button just for the theme icon to keep it square */
         .btn-icon {
             padding: 8px 12px;
             font-size: 16px;
         }
 
-        .visualizer-container { display: flex; justify-content: center; align-items: flex-end; height: 40px; gap: 6px; margin-bottom: -5px; }
-        .bar { width: 8px; background: var(--text-muted); border-radius: 4px; height: 6px; transition: background 0.3s ease; }
-
-        .visualizer-container.active .bar { background: var(--accent); animation: bounce 0.6s infinite alternate ease-in-out; }
-        .visualizer-container.active .bar:nth-child(1) { animation-delay: 0.0s; }
-        .visualizer-container.active .bar:nth-child(2) { animation-delay: 0.2s; }
-        .visualizer-container.active .bar:nth-child(3) { animation-delay: 0.4s; }
-        .visualizer-container.active .bar:nth-child(4) { animation-delay: 0.1s; }
-        .visualizer-container.active .bar:nth-child(5) { animation-delay: 0.3s; }
-        .visualizer-container.active .bar:nth-child(6) { animation-delay: 0.5s; }
-        .visualizer-container.active .bar:nth-child(7) { animation-delay: 0.2s; }
-
-        @keyframes bounce { 0% { height: 6px; } 100% { height: 35px; } }
-
-        textarea, select {
-            width: 100%; padding: 16px; border-radius: 14px;
-            background-color: var(--bg-input); color: var(--text-main);
-            border: 1px solid var(--border-muted); font-size: 16px;
+        /* Make textarea grow to fill the left panel */
+        textarea {
+            width: 100%;
+            flex: 1;
+            min-height: 350px;
+            padding: 20px;
+            border-radius: 14px;
+            background-color: var(--bg-input);
+            color: var(--text-main);
+            border: 1px solid var(--border-muted);
+            font-size: 16px;
+            line-height: 1.6;
+            resize: none;
+            /* Turned off resize because the grid manages the size now */
             transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s ease, color 0.3s ease;
         }
 
-        textarea:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.2); }
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.2);
+        }
 
-        textarea { height: 200px; resize: both; min-width: 100%; max-width: 85vw; max-height: 50vh; line-height: 1.6; }
-        textarea::selection { background-color: var(--highlight); color: #111827; }
+        textarea::selection {
+            background-color: var(--highlight);
+            color: #111827;
+        }
 
-        .stats-bar { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-top: -10px; padding: 0 5px; }
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: -10px;
+            padding: 0 5px;
+        }
 
         select {
-            cursor: pointer; appearance: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            background-color: var(--bg-input);
+            color: var(--text-main);
+            border: 1px solid var(--border-muted);
+            font-size: 16px;
+            cursor: pointer;
+            appearance: none;
             background-image: url('data:image/svg+xml;utf8,<svg fill="var(--select-arrow)" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-            background-repeat: no-repeat; background-position-x: calc(100% - 15px); background-position-y: center;
+            background-repeat: no-repeat;
+            background-position-x: calc(100% - 15px);
+            background-position-y: center;
+            transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s ease, color 0.3s ease;
         }
 
-        .sliders { display: flex; gap: 20px; background: var(--bg-input); padding: 18px 20px; border-radius: 14px; border: 1px solid var(--border-muted); transition: background-color 0.3s ease, border-color 0.3s ease; }
-        .slider-group { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-        .slider-group label { font-size: 13px; font-weight: 600; color: var(--text-muted); display: flex; justify-content: space-between; text-transform: uppercase; letter-spacing: 0.5px;}
-        .slider-group span { color: var(--accent); font-weight: 700; }
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.2);
+        }
 
-        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        .sliders {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background: var(--bg-input);
+            padding: 20px;
+            border-radius: 14px;
+            border: 1px solid var(--border-muted);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .slider-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .slider-group span {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
         input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%;
-            background: var(--text-main); cursor: pointer; margin-top: -7px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5); border: 3px solid var(--accent);
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: var(--text-main);
+            cursor: pointer;
+            margin-top: -7px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            border: 3px solid var(--accent);
             transition: background-color 0.3s ease;
         }
-        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: var(--border-muted); border-radius: 2px; transition: background-color 0.3s ease; }
 
-        .button-group { display: flex; gap: 12px; width: 100%; }
-        button { flex: 1; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; color: white; transition: all 0.2s; }
-        button:active { transform: translateY(2px); }
-        .btn-play { background-color: var(--accent); } .btn-play:hover { background-color: var(--accent-hover); }
-        .btn-secondary { background-color: var(--secondary); } .btn-secondary:hover { background-color: var(--secondary-hover); }
-        .btn-danger { background-color: var(--danger); } .btn-danger:hover { background-color: var(--danger-hover); }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: var(--border-muted);
+            border-radius: 2px;
+            transition: background-color 0.3s ease;
+        }
 
+        .visualizer-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 50px;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .bar {
+            width: 8px;
+            background: var(--text-muted);
+            border-radius: 4px;
+            height: 6px;
+            transition: background 0.3s ease;
+        }
+
+        .visualizer-container.active .bar {
+            background: var(--accent);
+            animation: bounce 0.6s infinite alternate ease-in-out;
+        }
+
+        .visualizer-container.active .bar:nth-child(1) {
+            animation-delay: 0.0s;
+        }
+
+        .visualizer-container.active .bar:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .visualizer-container.active .bar:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        .visualizer-container.active .bar:nth-child(4) {
+            animation-delay: 0.1s;
+        }
+
+        .visualizer-container.active .bar:nth-child(5) {
+            animation-delay: 0.3s;
+        }
+
+        .visualizer-container.active .bar:nth-child(6) {
+            animation-delay: 0.5s;
+        }
+
+        .visualizer-container.active .bar:nth-child(7) {
+            animation-delay: 0.2s;
+        }
+
+        @keyframes bounce {
+            0% {
+                height: 6px;
+            }
+
+            100% {
+                height: 40px;
+            }
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            color: white;
+            transition: all 0.2s;
+        }
+
+        button:active {
+            transform: translateY(2px);
+        }
+
+        .btn-play {
+            background-color: var(--accent);
+            font-size: 18px;
+            padding: 20px;
+        }
+
+        .btn-play:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-hover);
+        }
+
+        /* Make it stack on smaller screens */
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            textarea {
+                min-height: 250px;
+            }
+        }
     </style>
 </head>
+
 <body>
 
-    <div class="container">
-        <div class="header-row">
-            <h2>Speech to <span>Text</span></h2>
-            
-            <div class="header-actions">
-                <button id="theme-toggle" class="btn-secondary btn-small btn-icon" title="Toggle Theme">☀️</button>
-                <input type="file" id="file-upload" accept=".txt" style="display: none;">
-                <button id="upload-btn" class="btn-secondary btn-small">Upload File</button>
+    <div class="dashboard">
+
+        <div class="panel">
+            <div class="header-row">
+                <h2>Speech to <span>Text</span></h2>
+                <div class="header-actions">
+                    <button id="theme-toggle" class="btn-secondary btn-small btn-icon" title="Toggle Theme">☀️</button>
+                    <input type="file" id="file-upload" accept=".txt" style="display: none;">
+                    <button id="upload-btn" class="btn-secondary btn-small" title="Shortcut: Alt + U">Upload
+                        File</button>
+                </div>
+            </div>
+
+            <textarea id="text-input" placeholder="Type something or upload a file..."></textarea>
+
+            <div class="stats-bar">
+                <span id="word-count">0 Words</span>
+                <span id="char-count">0 Characters</span>
             </div>
         </div>
 
-        <div class="visualizer-container" id="visualizer">
-            <div class="bar"></div><div class="bar"></div><div class="bar"></div>
-            <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
-        </div>
-        
-        <textarea id="text-input" placeholder="Type something or upload a file..."></textarea>
-        
-        <div class="stats-bar">
-            <span id="word-count">0 Words</span>
-            <span id="char-count">0 Characters</span>
+        <div class="panel">
+            <div class="visualizer-container" id="visualizer">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+
+            <select id="voice-select">
+                <option value="">Loading voices...</option>
+            </select>
+
+            <div class="sliders">
+                <div class="slider-group">
+                    <label for="volume-slider">Volume <span id="volume-value">100%</span></label>
+                    <input type="range" id="volume-slider" min="0" max="1" value="1" step="0.1">
+                </div>
+                <div class="slider-group">
+                    <label for="speed-slider">Speed <span id="speed-value">1.0x</span></label>
+                    <input type="range" id="speed-slider" min="0.5" max="2" value="1" step="0.1">
+                </div>
+                <div class="slider-group">
+                    <label for="pitch-slider">Pitch <span id="pitch-value">1.0</span></label>
+                    <input type="range" id="pitch-slider" min="0" max="2" value="1" step="0.1">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button id="play-pause-btn" class="btn-play" title="Shortcut: Ctrl + Enter">Play Audio</button>
+                <div class="button-row">
+                    <button id="stop-btn" class="btn-danger" title="Shortcut: Esc">Stop</button>
+                    <button id="clear-btn" class="btn-secondary" title="Shortcut: Alt + C">Clear Text</button>
+                </div>
+            </div>
         </div>
 
-        <select id="voice-select"><option value="">Loading voices...</option></select>
-        
-        <div class="sliders">
-            <div class="slider-group">
-                <label for="volume-slider">Volume <span id="volume-value">100%</span></label>
-                <input type="range" id="volume-slider" min="0" max="1" value="1" step="0.1">
-            </div>
-            <div class="slider-group">
-                <label for="speed-slider">Speed <span id="speed-value">1.0x</span></label>
-                <input type="range" id="speed-slider" min="0.5" max="2" value="1" step="0.1">
-            </div>
-            <div class="slider-group">
-                <label for="pitch-slider">Pitch <span id="pitch-value">1.0</span></label>
-                <input type="range" id="pitch-slider" min="0" max="2" value="1" step="0.1">
-            </div>
-        </div>
-
-        <div class="button-group">
-            <button id="play-pause-btn" class="btn-play">Play Audio</button>
-            <button id="stop-btn" class="btn-danger">Stop</button>
-            <button id="clear-btn" class="btn-secondary">Clear Text</button>
-        </div>
     </div>
 
     <script>
@@ -224,34 +443,56 @@
         const fileUpload = document.getElementById('file-upload');
         const uploadBtn = document.getElementById('upload-btn');
         const visualizer = document.getElementById('visualizer');
-        const themeToggleBtn = document.getElementById('theme-toggle'); // NEW
-        
+        const themeToggleBtn = document.getElementById('theme-toggle');
+
         const wordCountDisplay = document.getElementById('word-count');
         const charCountDisplay = document.getElementById('char-count');
 
         const volumeSlider = document.getElementById('volume-slider');
         const speedSlider = document.getElementById('speed-slider');
-        const pitchSlider = document.getElementById('pitch-slider'); 
+        const pitchSlider = document.getElementById('pitch-slider');
         const volumeValue = document.getElementById('volume-value');
         const speedValue = document.getElementById('speed-value');
-        const pitchValue = document.getElementById('pitch-value'); 
+        const pitchValue = document.getElementById('pitch-value');
 
-        let absoluteStartIndex = 0; 
+        let absoluteStartIndex = 0;
         let currentUtteranceIndex = 0;
-        let activeUtteranceId = 0; 
+        let activeUtteranceId = 0;
         let voices = [];
 
-        // --- NEW: THEME INITIALIZATION ---
+        // --- KEYBOARD SHORTCUTS LISTENER ---
+        document.addEventListener('keydown', (e) => {
+            // Play/Pause: Ctrl + Enter
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault(); // Stops accidental form submissions
+                playPauseBtn.click();
+            }
+            // Stop: Escape
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                stopBtn.click();
+            }
+            // Clear: Alt + C
+            if (e.altKey && e.key.toLowerCase() === 'c') {
+                e.preventDefault();
+                clearBtn.click();
+            }
+            // Upload: Alt + U
+            if (e.altKey && e.key.toLowerCase() === 'u') {
+                e.preventDefault();
+                uploadBtn.click();
+            }
+        });
+
+        // Theme Initialization
         const savedTheme = localStorage.getItem('tts_theme') || 'dark';
         if (savedTheme === 'light') {
             document.documentElement.setAttribute('data-theme', 'light');
             themeToggleBtn.textContent = '🌙';
         }
 
-        // --- NEW: THEME TOGGLE LISTENER ---
         themeToggleBtn.addEventListener('click', () => {
             const currentTheme = document.documentElement.getAttribute('data-theme');
-            
             if (currentTheme === 'light') {
                 document.documentElement.removeAttribute('data-theme');
                 localStorage.setItem('tts_theme', 'dark');
@@ -274,7 +515,7 @@
         if (savedText) {
             textInput.value = savedText;
         } else {
-            textInput.value = "The ancient forest stood as a quiet testament to time, its towering redwoods filtering the golden afternoon sunlight into a mosaic of vibrant green.";
+            textInput.value = `The ancient forest awakens just before the dawn. As the first pale rays of sunlight pierce the dense canopy, a quiet symphony of life begins to stir beneath the towering redwoods. Dewdrops cling to the intricate geometry of the vibrant green ferns, catching the morning light like fragile, momentary diamonds. A cool, earthy breeze sweeps through the underbrush, carrying the rich scent of damp pine needles and blooming wildflowers, whispering secrets to the awakening world before the day officially begins.`;
         }
         updateStats();
 
@@ -285,7 +526,7 @@
 
         volumeSlider.addEventListener('input', () => { volumeValue.textContent = Math.round(volumeSlider.value * 100) + '%'; });
         speedSlider.addEventListener('input', () => { speedValue.textContent = speedSlider.value + 'x'; });
-        pitchSlider.addEventListener('input', () => { pitchValue.textContent = pitchSlider.value; }); 
+        pitchSlider.addEventListener('input', () => { pitchValue.textContent = pitchSlider.value; });
 
         function populateVoiceList() {
             voices = synth.getVoices();
@@ -293,19 +534,17 @@
                 voiceSelect.innerHTML = '<option value="">Loading voices... (Click to retry)</option>';
                 return;
             }
-            voiceSelect.innerHTML = ''; 
+            voiceSelect.innerHTML = '';
             voices.forEach((voice) => {
                 const option = document.createElement('option');
                 option.textContent = `${voice.name} (${voice.lang})`;
-                option.setAttribute('data-name', voice.name); 
+                option.setAttribute('data-name', voice.name);
                 voiceSelect.appendChild(option);
             });
         }
-        
+
         populateVoiceList();
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = populateVoiceList;
-        }
+        if (speechSynthesis.onvoiceschanged !== undefined) { speechSynthesis.onvoiceschanged = populateVoiceList; }
         voiceSelect.addEventListener('focus', () => { if (voices.length === 0) populateVoiceList(); });
 
         function clearHighlight() {
@@ -319,10 +558,9 @@
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    textInput.value = e.target.result; 
+                    textInput.value = e.target.result;
                     localStorage.setItem('tts_saved_text', textInput.value);
                     updateStats();
-                    
                     activeUtteranceId++;
                     synth.cancel();
                     playPauseBtn.textContent = 'Play Audio';
@@ -331,14 +569,14 @@
                     absoluteStartIndex = 0;
                 };
                 reader.readAsText(file);
-                fileUpload.value = ''; 
+                fileUpload.value = '';
             }
         });
 
         function startSpeaking(textToSpeak) {
-            activeUtteranceId++; 
+            activeUtteranceId++;
             const myId = activeUtteranceId;
-            
+
             if (synth.speaking) { synth.cancel(); }
 
             currentUtteranceIndex = 0;
@@ -346,12 +584,12 @@
             const utterance = new SpeechSynthesisUtterance(textToSpeak);
             utterance.volume = parseFloat(volumeSlider.value);
             utterance.rate = parseFloat(speedSlider.value);
-            utterance.pitch = parseFloat(pitchSlider.value); 
-            
+            utterance.pitch = parseFloat(pitchSlider.value);
+
             const selectedVoiceName = voiceSelect.selectedOptions[0]?.getAttribute('data-name');
             const selectedVoice = voices.find(voice => voice.name === selectedVoiceName);
             if (selectedVoice) utterance.voice = selectedVoice;
-            
+
             utterance.onboundary = (event) => {
                 if (event.name === 'word') {
                     currentUtteranceIndex = event.charIndex;
@@ -363,21 +601,21 @@
 
             utterance.onend = () => {
                 if (myId === activeUtteranceId) {
-                    playPauseBtn.textContent = 'Play Audio'; 
-                    visualizer.classList.remove('active'); 
+                    playPauseBtn.textContent = 'Play Audio';
+                    visualizer.classList.remove('active');
                     clearHighlight();
-                    absoluteStartIndex = 0; 
+                    absoluteStartIndex = 0;
                 }
             };
-            
-            playPauseBtn.textContent = 'Pause'; 
-            visualizer.classList.add('active'); 
-            
+
+            playPauseBtn.textContent = 'Pause';
+            visualizer.classList.add('active');
+
             setTimeout(() => { synth.speak(utterance); }, 50);
         }
 
         playPauseBtn.addEventListener('click', () => {
-            if (textInput.value === '') return; 
+            if (textInput.value === '') return;
 
             if (synth.speaking) {
                 if (synth.paused) {
@@ -408,28 +646,29 @@
 
         volumeSlider.addEventListener('change', handleLiveUpdate);
         speedSlider.addEventListener('change', handleLiveUpdate);
-        pitchSlider.addEventListener('change', handleLiveUpdate); 
+        pitchSlider.addEventListener('change', handleLiveUpdate);
 
         stopBtn.addEventListener('click', () => {
-            activeUtteranceId++; 
+            activeUtteranceId++;
             synth.cancel();
-            playPauseBtn.textContent = 'Play Audio'; 
+            playPauseBtn.textContent = 'Play Audio';
             visualizer.classList.remove('active');
             clearHighlight();
             absoluteStartIndex = 0;
         });
 
         clearBtn.addEventListener('click', () => {
-            textInput.value = ''; 
+            textInput.value = '';
             localStorage.removeItem('tts_saved_text');
             updateStats();
-            activeUtteranceId++; 
-            synth.cancel(); 
-            playPauseBtn.textContent = 'Play Audio'; 
+            activeUtteranceId++;
+            synth.cancel();
+            playPauseBtn.textContent = 'Play Audio';
             visualizer.classList.remove('active');
             clearHighlight();
             absoluteStartIndex = 0;
         });
     </script>
 </body>
+
 </html>
